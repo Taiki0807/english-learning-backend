@@ -1,0 +1,25 @@
+version: "3"
+services:
+  # PostgreSQL
+  postgres_db:
+    container_name: english-learning-postgres_db
+    image: postgres:13-bullseye
+    env_file: ./docker.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Django REST framework
+  backend:
+    container_name: english-learning-DRF
+    env_file: ./docker.env
+    build: .
+    command: python3 manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres_db
+
+volumes:
+  postgres_data:

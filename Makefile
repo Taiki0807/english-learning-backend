@@ -1,4 +1,5 @@
-SRC_DIRS := $(shell find . -maxdepth 1 -type d -not -name '.*')
+EXCLUDE_DIRS := media
+SRC_DIRS := $(shell find . -maxdepth 1 -type d -not -name '.*' -not -name '$(EXCLUDE_DIRS)')
 
 lint:
 	flake8 $(SRC_DIRS)

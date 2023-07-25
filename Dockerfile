@@ -1,8 +1,19 @@
-FROM python:3.11.1-buster
+ARG PYTHON_VERSION=3.11-slim-buster
+
+FROM python:${PYTHON_VERSION}
+
+ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-RUN mkdir /code
+
+RUN mkdir -p /code
+
 WORKDIR /code
-ENV PIP_ROOT_USER_ACTION=ignore
-RUN pip install --upgrade pip
-ADD requirements.txt /code/
-RUN pip install -r requirements.txt
+
+RUN pip install pipenv
+COPY Pipfile Pipfile.lock /code/
+RUN pipenv install --deploy --system
+COPY . /code
+
+EXPOSE 8000
+
+CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "config.wsgi"]

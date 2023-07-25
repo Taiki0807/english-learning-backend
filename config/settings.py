@@ -13,16 +13,21 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import dj_database_url
+import environ
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env = environ.Env()
+env.read_env(os.path.join(BASE_DIR, "docker.env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = [os.environ.get("ALLOWED_HOSTS")]
 
 
@@ -39,8 +44,10 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "corsheaders",
+    "rest_framework.authtoken",
     # my apps
     "account.apps.AccountConfig",
+    "word.apps.WordConfig",
 ]
 
 MIDDLEWARE = [
@@ -78,17 +85,22 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB"),
-        "USER": os.environ.get("POSTGRES_USER"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-        "HOST": "postgres_db",
-        "PORT": 5432,
+database_url = str(os.environ.get("DATABASE_URL"))
+if not DEBUG:
+    DATABASES = {
+        "default": dj_database_url.parse(database_url, conn_max_age=600),
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": str(os.environ.get("POSTGRES_DB")),
+            "USER": str(os.environ.get("POSTGRES_USER")),
+            "PASSWORD": str(os.environ.get("POSTGRES_PASSWORD")),
+            "HOST": "postgres_db",
+            "PORT": 5432,
+        }
+    }
 
 
 # Password validation
@@ -129,15 +141,26 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
+    "https://english-learning-frontend.vercel.app",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
 ]
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "config.authenticate.CustomAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "API一覧",
     "DESCRIPTION": "English learning backend",
     "VERSION": "1.0.0",
 }
+
+MEDIA_URL = "http://localhost:8000/media_local/"
+MEDIA_ROOT = BASE_DIR / "media_local"
 
 
 # Internationalization

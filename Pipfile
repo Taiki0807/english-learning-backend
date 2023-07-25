@@ -16,6 +16,10 @@ pre-commit = "*"
 djangorestframework-simplejwt = "*"
 django-shortuuidfield = "*"
 django-cors-headers = "*"
+numpy = "*"
+dj-database-url = "*"
+django-environ = "*"
+gunicorn = "*"
 
 [dev-packages]
 

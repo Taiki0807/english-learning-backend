@@ -8,23 +8,19 @@ class AccountManager(BaseUserManager):
     ユーザーを作成する
     """
 
-    def create_user(self, request, image=None, **extra_fields):
+    def create_user(self, username, email=None, password=None, image=None, **extra_fields):
         now = timezone.now()
-        if not request["username"]:
+        if not username:
             raise ValueError("Users must have a username")
 
-        user = self.model(
-            username=request["username"], email=request["email"], is_active=True, date_joined=now, image=image
-        )
+        user = self.model(username=username, email=email, is_active=True, date_joined=now, image=image, **extra_fields)
 
-        user.set_password(request["password"])
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
     def create_superuser(self, username, email, password, **extra_fields):
-        request_data = {"username": username, "email": email, "password": password}
-        user = self.create_user(request_data)
-        user.is_active = True
+        user = self.create_user(username, email=email, password=password, **extra_fields)
         user.is_staff = True
         user.is_admin = True
         user.save(using=self._db)
@@ -40,7 +36,7 @@ class Account(AbstractBaseUser):
         db_table = "account"
 
     username = models.CharField(verbose_name="ユーザ名", max_length=255, unique=True)
-    email = models.EmailField(verbose_name="Eメール", max_length=255, unique=True)
+    email = models.EmailField(verbose_name="Eメール", max_length=255, unique=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
